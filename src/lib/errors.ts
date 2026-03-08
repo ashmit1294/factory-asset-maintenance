@@ -40,14 +40,42 @@ export class ConflictError extends AppError {
   }
 }
 
-export class UnprocessableEntityError extends AppError {
-  constructor(message: string) {
-    super(message, 422, 'UNPROCESSABLE_ENTITY');
+export class InvalidTransitionError extends AppError {
+  constructor(from: string, to: string) {
+    super(
+      `Invalid state transition: ${from} → ${to}`,
+      422,
+      'INVALID_TRANSITION'
+    );
   }
 }
 
-export class InternalServerError extends AppError {
-  constructor(message: string = 'Internal server error') {
-    super(message, 500, 'INTERNAL_SERVER_ERROR');
+export class InsufficientInventoryError extends AppError {
+  constructor(itemName: string) {
+    super(
+      `Insufficient stock for: ${itemName}`,
+      400,
+      'INSUFFICIENT_INVENTORY'
+    );
   }
+}
+
+export function handleApiError(error: unknown): {
+  message: string;
+  code: string;
+  statusCode: number;
+} {
+  if (error instanceof AppError) {
+    return {
+      message: error.message,
+      code: error.code,
+      statusCode: error.statusCode,
+    };
+  }
+  console.error('Unhandled error:', error);
+  return {
+    message: 'Internal server error',
+    code: 'INTERNAL_SERVER_ERROR',
+    statusCode: 500,
+  };
 }

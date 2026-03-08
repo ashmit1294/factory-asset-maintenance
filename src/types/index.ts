@@ -17,11 +17,8 @@ export type TaskStatus =
   | 'CANCELLED';
 
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-
 export type MaterialRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-
 export type MachineryStatus = 'ACTIVE' | 'DECOMMISSIONED';
-
 export type Unit = 'pcs' | 'kg' | 'litres' | 'metres' | 'boxes';
 
 export interface EventLogEntry {
@@ -40,23 +37,19 @@ export interface EventLogEntry {
 export interface JWTPayload {
   _id: string;
   role: Role;
+  name: string;
   email: string;
   iat?: number;
   exp?: number;
 }
 
-export interface RequestWithUser {
+export interface AuthenticatedRequest {
   user: {
     _id: string;
     role: Role;
     name: string;
     email: string;
   };
-}
-
-export interface PaginationParams {
-  page: number;
-  limit: number;
 }
 
 export interface PaginatedResponse<T> {
@@ -68,3 +61,24 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
+
+export const SLA_HOURS: Record<Priority, number> = {
+  CRITICAL: 4,
+  HIGH: 24,
+  MEDIUM: 72,
+  LOW: 168,
+};
+
+export const TERMINAL_STATES: TaskStatus[] = [
+  'CONFIRMED',
+  'CANCELLED',
+  'REJECTED',
+];
+
+export const ESCALATION_EXEMPT_STATES: TaskStatus[] = [
+  'CONFIRMED',
+  'CANCELLED',
+  'REJECTED',
+  'PAUSED',
+  'ESCALATED',
+];
