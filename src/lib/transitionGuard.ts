@@ -5,8 +5,8 @@ import {
   InvalidTransitionError,
   NotFoundError,
 } from '@/lib/errors';
-import User from '@/models/User';
-import MaterialRequest from '@/models/MaterialRequest';
+import User from '../models/User';
+import MaterialRequest from '../models/MaterialRequest';
 
 export interface TransitionContext {
   assignedTo?: string;

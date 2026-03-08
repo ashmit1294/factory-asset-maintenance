@@ -264,7 +264,14 @@ export async function transitionTaskStatus(
   if (!task) throw new NotFoundError('Task not found');
 
   // Run all transition guards
-  await validateTransition(task, nextStatus, actor, ctx);
+  const taskSnapshot = {
+    _id: task._id.toString(),
+    status: task.status,
+    assignedTo: task.assignedTo,
+    reportedBy: task.reportedBy,
+    __v: task.__v,
+  };
+  await validateTransition(taskSnapshot, nextStatus, actor, ctx);
 
   // Build update object
   const update: Record<string, unknown> = {

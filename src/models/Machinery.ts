@@ -92,7 +92,7 @@ const MachinerySchema = new Schema<IMachinery>(
   {
     timestamps: true,
     toJSON: {
-      transform: (_doc, ret) => {
+      transform: (_doc, ret: any) => {
         delete ret.__v;
         return ret;
       },
@@ -101,7 +101,6 @@ const MachinerySchema = new Schema<IMachinery>(
 );
 
 // Indexes
-MachinerySchema.index({ serialNumber: 1 }, { unique: true });
 MachinerySchema.index({ status: 1 });
 
 const Machinery: Model<IMachinery> =

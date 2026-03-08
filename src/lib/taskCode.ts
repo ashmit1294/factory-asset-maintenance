@@ -1,4 +1,4 @@
-import Task from '@/models/Task';
+import Task from '../models/Task';
 
 export function generateTaskCode(): string {
   const digits = Math.floor(1000 + Math.random() * 9000).toString();

@@ -21,6 +21,12 @@ export type MaterialRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 export type MachineryStatus = 'ACTIVE' | 'DECOMMISSIONED';
 export type Unit = 'pcs' | 'kg' | 'litres' | 'metres' | 'boxes';
 
+export interface IMaterialItem {
+  name: string;
+  quantity: number;
+  unit: Unit;
+}
+
 export interface EventLogEntry {
   action: string;
   fromStatus: string | null;

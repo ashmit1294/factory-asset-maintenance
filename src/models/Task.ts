@@ -194,7 +194,7 @@ const TaskSchema = new Schema<ITask>(
     optimisticConcurrency: true, // enables __v-based race condition protection
     toJSON: {
       virtuals: true,
-      transform: (_doc, ret) => {
+      transform: (_doc, ret: any) => {
         delete ret.__v;
         return ret;
       },
@@ -206,7 +206,6 @@ const TaskSchema = new Schema<ITask>(
 );
 
 // ── Indexes ────────────────────────────────────────────────────────────────
-TaskSchema.index({ taskCode: 1 }, { unique: true });
 TaskSchema.index({ status: 1 });
 TaskSchema.index({ reportedBy: 1 });
 TaskSchema.index({ assignedTo: 1 });
