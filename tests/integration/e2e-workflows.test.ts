@@ -81,27 +81,17 @@ describe('End-to-End Workflow Integration', () => {
 
     // Create inventory
     await Inventory.create({
-      name: 'Motor 2HP Replacement',
-      sku: 'MOTOR-2HP-001',
+      itemName: 'Motor 2HP Replacement',
       unit: 'pcs',
       quantity: 8,
       reorderLevel: 2,
-      reorderQuantity: 5,
-      supplier: 'MotorCorp',
-      lastRestockedDate: new Date('2026-01-20'),
-      expiryDate: new Date('2027-01-20'),
     });
 
     await Inventory.create({
-      name: 'Bearing Oil Synthetic',
-      sku: 'BEARING-OIL',
+      itemName: 'Bearing Oil Synthetic',
       unit: 'litres',
       quantity: 50,
       reorderLevel: 10,
-      reorderQuantity: 30,
-      supplier: 'OilSupply Co',
-      lastRestockedDate: new Date('2026-02-01'),
-      expiryDate: new Date('2028-02-01'),
     });
   });
 
@@ -126,13 +116,14 @@ describe('End-to-End Workflow Integration', () => {
       });
 
       const task = await Task.create({
-        taskCode: 'TSK-WF-001',
+        taskCode: 'TSK-0020-WFW',
         title: 'Conveyor motor bearing noise',
         description: 'Bearing in main drive motor making grinding noise',
         priority: 'HIGH',
         status: 'REPORTED',
         reportedBy: new Types.ObjectId(reporterUserId),
         machineryId: new Types.ObjectId(machineryId),
+        slaDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
         eventLog: [
           {
             action: 'TASK_REPORTED',
@@ -149,7 +140,7 @@ describe('End-to-End Workflow Integration', () => {
       });
 
       expect(task.status).toBe('REPORTED');
-      expect(task.taskCode).toBe('TSK-WF-001');
+      expect(task.taskCode).toBe('TSK-0020-WFW');
 
       // STEP 2: Manager Reviews and Assigns
       console.log('[STEP 2] Manager reviews and assigns to technician');
@@ -178,7 +169,7 @@ describe('End-to-End Workflow Integration', () => {
             },
           },
         },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       expect(assigned?.status).toBe('UNDER_REVIEW');
@@ -203,7 +194,7 @@ describe('End-to-End Workflow Integration', () => {
             },
           },
         },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       expect(assignedToTech?.status).toBe('ASSIGNED');
@@ -232,8 +223,8 @@ describe('End-to-End Workflow Integration', () => {
       expect(materialRequest.items).toHaveLength(2);
 
       // Check inventory availability
-      const motor = await Inventory.findOne({ sku: 'MOTOR-2HP-001' });
-      const oil = await Inventory.findOne({ sku: 'BEARING-OIL' });
+      const motor = await Inventory.findOne({ itemName: 'motor 2hp replacement' });
+      const oil = await Inventory.findOne({ itemName: 'bearing oil synthetic' });
 
       expect(motor?.quantity).toBeGreaterThanOrEqual(1);
       expect(oil?.quantity).toBeGreaterThanOrEqual(2);
@@ -247,24 +238,24 @@ describe('End-to-End Workflow Integration', () => {
           approvedBy: new Types.ObjectId(managerUserId),
           approvedAt: new Date(),
         },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       expect(approvedRequest?.status).toBe('APPROVED');
 
       // Deduct from inventory
       await Inventory.findOneAndUpdate(
-        { sku: 'MOTOR-2HP-001' },
+        { itemName: 'motor 2hp replacement' },
         { $inc: { quantity: -1 } }
       );
 
       await Inventory.findOneAndUpdate(
-        { sku: 'BEARING-OIL' },
+        { itemName: 'bearing oil synthetic' },
         { $inc: { quantity: -2 } }
       );
 
-      const motorAfter = await Inventory.findOne({ sku: 'MOTOR-2HP-001' });
-      const oilAfter = await Inventory.findOne({ sku: 'BEARING-OIL' });
+      const motorAfter = await Inventory.findOne({ itemName: 'motor 2hp replacement' });
+      const oilAfter = await Inventory.findOne({ itemName: 'bearing oil synthetic' });
 
       expect(motorAfter?.quantity).toBe((motor?.quantity ?? 0) - 1);
       expect(oilAfter?.quantity).toBe((oil?.quantity ?? 0) - 2);
@@ -289,11 +280,11 @@ describe('End-to-End Workflow Integration', () => {
             },
           },
         },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       expect(inProgress?.status).toBe('IN_PROGRESS');
-      expect(inProgress?.startedAt).toBeDefined();
+      // Note: startedAt is not a schema field, status change is tracked via eventLog
 
       // STEP 6: Technician Completes Work
       console.log('[STEP 6] Technician completes repair');
@@ -316,12 +307,11 @@ describe('End-to-End Workflow Integration', () => {
             },
           },
         },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       expect(completed?.status).toBe('COMPLETED');
       expect(completed?.completedAt).toBeDefined();
-      expect(completed?.notes).toBeTruthy();
 
       // STEP 7: Manager Confirms Completion
       console.log('[STEP 7] Manager reviews and confirms completion');
@@ -344,7 +334,7 @@ describe('End-to-End Workflow Integration', () => {
             },
           },
         },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       expect(confirmed?.status).toBe('CONFIRMED');
@@ -367,14 +357,15 @@ describe('End-to-End Workflow Integration', () => {
 
       // Create initial task
       const task = await Task.create({
-        taskCode: 'TSK-WF-ESC-001',
+        taskCode: 'TSK-0021-ESC',
         title: 'Escalation test task',
         description: 'Testing escalation workflow',
         priority: 'CRITICAL',
         status: 'REPORTED',
         reportedBy: new Types.ObjectId(reporterUserId),
         machineryId: new Types.ObjectId(machineryId),
-        rejectionCount: 0,
+        slaDeadline: new Date(Date.now() + 4 * 60 * 60 * 1000),
+        eventLog: [],
       });
 
       // CYCLE 1: Manager rejects
@@ -383,23 +374,41 @@ describe('End-to-End Workflow Integration', () => {
         task._id,
         {
           status: 'REJECTED',
-          rejectionCount: 1,
-          rejectedBy: new Types.ObjectId(managerUserId),
           rejectionReason: 'Insufficient details provided',
+          $push: {
+            eventLog: {
+              action: 'REJECTED',
+              fromStatus: 'REPORTED',
+              toStatus: 'REJECTED',
+              performedBy: { userId: new Types.ObjectId(managerUserId), name: 'Processing Manager', role: 'MANAGER' },
+              note: 'Rejection 1',
+              timestamp: new Date(),
+            },
+          },
         },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
-      expect(reject1?.rejectionCount).toBe(1);
+      expect(reject1?.status).toBe('REJECTED');
+      expect(reject1?.rejectionReason).toBeTruthy();
 
       // User resubmits
       const resubmit1 = await Task.findByIdAndUpdate(
         task._id,
         {
-          status: 'REPORTED', // Resubmitted
-          updatedAt: new Date(),
+          status: 'REOPENED',
+          reopenReason: 'Added more details',
+          $push: {
+            eventLog: {
+              action: 'REOPENED',
+              fromStatus: 'REJECTED',
+              toStatus: 'REOPENED',
+              performedBy: { userId: new Types.ObjectId(reporterUserId), name: 'Production User', role: 'USER' },
+              timestamp: new Date(),
+            },
+          },
         },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       // CYCLE 2: Manager rejects again
@@ -408,13 +417,22 @@ describe('End-to-End Workflow Integration', () => {
         task._id,
         {
           status: 'REJECTED',
-          rejectionCount: 2,
-          rejectedBy: new Types.ObjectId(managerUserId),
+          rejectionReason: 'Still missing details',
+          $push: {
+            eventLog: {
+              action: 'REJECTED',
+              fromStatus: 'REOPENED',
+              toStatus: 'REJECTED',
+              performedBy: { userId: new Types.ObjectId(managerUserId), name: 'Processing Manager', role: 'MANAGER' },
+              note: 'Rejection 2',
+              timestamp: new Date(),
+            },
+          },
         },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
-      expect(reject2?.rejectionCount).toBe(2);
+      expect(reject2?.status).toBe('REJECTED');
 
       // CYCLE 3: Manager rejects third time
       console.log('[REJECTION 3] Third rejection - triggers escalation');
@@ -422,27 +440,37 @@ describe('End-to-End Workflow Integration', () => {
         task._id,
         {
           status: 'REJECTED',
-          rejectionCount: 3,
-          rejectedBy: new Types.ObjectId(managerUserId),
-          lastRejectingManagerId: managerUserId,
+          rejectionReason: 'Repeated insufficient details',
+          $push: {
+            eventLog: {
+              action: 'REJECTED',
+              fromStatus: 'REJECTED',
+              toStatus: 'REJECTED',
+              performedBy: { userId: new Types.ObjectId(managerUserId), name: 'Processing Manager', role: 'MANAGER' },
+              note: 'Rejection 3',
+              timestamp: new Date(),
+            },
+          },
         },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
-      // Trigger escalation
-      if ((reject3?.rejectionCount ?? 0) >= 3) {
+      // Count rejection events to determine if escalation is needed
+      const rejectionCount = reject3?.eventLog?.filter((e) => e.action === 'REJECTED').length ?? 0;
+
+      // Trigger escalation after 3 rejections
+      if (rejectionCount >= 3) {
         const escalated = await Task.findByIdAndUpdate(
           task._id,
           {
             status: 'ESCALATED',
             escalatedAt: new Date(),
-            escalatedTo: new Types.ObjectId(seniorManagerUserId),
           },
-          { new: true }
+          { returnDocument: 'after' }
         );
 
         expect(escalated?.status).toBe('ESCALATED');
-        expect(escalated?.escalatedTo).toBeDefined();
+        expect(escalated?.escalatedAt).toBeDefined();
 
         console.log('[ESCALATED] Task escalated to Senior Manager');
       }
@@ -454,13 +482,14 @@ describe('End-to-End Workflow Integration', () => {
       console.log('[COLLAB] Multi-user collaboration tracking');
 
       const task = await Task.create({
-        taskCode: 'TSK-WF-COLLAB-001',
+        taskCode: 'TSK-0022-COL',
         title: 'Collaborative task',
         description: 'Testing multi-user interactions',
         priority: 'MEDIUM',
         status: 'REPORTED',
         reportedBy: new Types.ObjectId(reporterUserId),
         machineryId: new Types.ObjectId(machineryId),
+        slaDeadline: new Date(Date.now() + 72 * 60 * 60 * 1000),
         eventLog: [
           {
             action: 'CREATED',
@@ -526,7 +555,7 @@ describe('End-to-End Workflow Integration', () => {
   describe('Concurrent User Access', () => {
     it('should handle multiple users viewing same task', async () => {
       const task = await Task.create({
-        taskCode: 'TSK-WF-CONCURRENT',
+        taskCode: 'TSK-0023-CON',
         title: 'Concurrent access test',
         description: 'Testing simultaneous user access',
         priority: 'HIGH',
@@ -534,6 +563,7 @@ describe('End-to-End Workflow Integration', () => {
         reportedBy: new Types.ObjectId(reporterUserId),
         assignedTo: new Types.ObjectId(technicianUserId),
         machineryId: new Types.ObjectId(machineryId),
+        slaDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
 
       // Simulate multiple users fetching the same task
@@ -584,3 +614,4 @@ describe('End-to-End Workflow Integration', () => {
     });
   });
 });
+

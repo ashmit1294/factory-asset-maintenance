@@ -54,18 +54,34 @@ describe('Authentication Flow Integration', () => {
     it('should reject duplicate email registration', async () => {
       const hashedPassword = await bcryptjs.hash(password, 12);
 
+      // First, create a user to establish the unique constraint
+      await User.create({
+        name: 'Original User',
+        email: 'duplicate-check@factory.com',
+        passwordHash: hashedPassword,
+        role: 'USER',
+        isActive: true,
+      });
+
+      // Now try to create a second user with the same email
+      let caughtError: any = null;
       try {
         await User.create({
           name: 'Different User',
-          email: testUsers[0].email, // Duplicate email
+          email: 'duplicate-check@factory.com', // Duplicate email
           passwordHash: hashedPassword,
           role: 'USER',
           isActive: true,
         });
         expect(true).toBe(false); // Should not reach here
       } catch (error: any) {
-        expect(error.code).toBe(11000); // MongoDB duplicate key error
+        caughtError = error;
       }
+
+      expect(caughtError).not.toBeNull();
+      // MongoDB duplicate key error code is 11000 (may be at error.code or error.errorResponse.code)
+      const errorCode = caughtError?.code ?? caughtError?.errorResponse?.code;
+      expect(errorCode).toBe(11000);
     });
 
     it('should require minimum password length', async () => {
@@ -324,3 +340,4 @@ describe('Authentication Flow Integration', () => {
     });
   });
 });
+

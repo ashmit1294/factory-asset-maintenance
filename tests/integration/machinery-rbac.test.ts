@@ -117,15 +117,16 @@ describe('Machinery Management Integration', () => {
         maintenanceHistory: [],
       });
 
-      expect(machinery.installationDate).toBeDefined();
-      expect(machinery.lastMaintenanceDate).toBeDefined();
+      // Machinery model has createdAt/updatedAt from timestamps
+      expect(machinery.createdAt).toBeDefined();
+      expect(machinery.maintenanceHistory).toBeDefined();
     });
   });
 
   describe('Machinery Status Lifecycle', () => {
     let machineryId: string;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
       const machinery = await Machinery.create({
         name: 'Status Test Machine',
         serialNumber: 'STATUS-TEST-001',
@@ -146,7 +147,7 @@ describe('Machinery Management Integration', () => {
       const updated = await Machinery.findByIdAndUpdate(
         machineryId,
         { status: 'DECOMMISSIONED' },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       expect(updated?.status).toBe('DECOMMISSIONED');
@@ -156,7 +157,7 @@ describe('Machinery Management Integration', () => {
       const updated = await Machinery.findByIdAndUpdate(
         machineryId,
         { status: 'DECOMMISSIONED' },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       expect(updated?.status).toBe('DECOMMISSIONED');
@@ -167,7 +168,7 @@ describe('Machinery Management Integration', () => {
     let machineryId: string;
     let taskId: string;
 
-    beforeAll(async () => {
+    beforeEach(async () => {
       const machinery = await Machinery.create({
         name: 'Task Association Machine',
         serialNumber: 'TASK-ASSOC-001',
@@ -187,6 +188,7 @@ describe('Machinery Management Integration', () => {
         status: 'REPORTED',
         reportedBy: new Types.ObjectId(),
         machineryId: new Types.ObjectId(machineryId),
+        slaDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
       taskId = task._id.toString();
     });
@@ -286,20 +288,21 @@ describe('Role-Based Access Control Integration', () => {
   });
 
   describe('Visibility Filters by Role', () => {
-    beforeAll(async () => {
+    beforeEach(async () => {
       // Create tasks for filtering tests
       await Task.create({
-        taskCode: 'TSK-RBAC-001',
+        taskCode: 'TSK-0030-RBA',
         title: 'User reported task',
         description: 'Reported by user',
         priority: 'HIGH',
         status: 'REPORTED',
         reportedBy: new Types.ObjectId(userUserId),
         machineryId: new Types.ObjectId(),
+        slaDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
 
       await Task.create({
-        taskCode: 'TSK-RBAC-002',
+        taskCode: 'TSK-0031-RBA',
         title: 'Tech assigned task',
         description: 'Assigned to technician',
         priority: 'MEDIUM',
@@ -307,6 +310,7 @@ describe('Role-Based Access Control Integration', () => {
         reportedBy: new Types.ObjectId(managerUserId),
         assignedTo: new Types.ObjectId(technicianUserId),
         machineryId: new Types.ObjectId(),
+        slaDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
     });
 
@@ -393,13 +397,14 @@ describe('Role-Based Access Control Integration', () => {
 
     beforeAll(async () => {
       const task1 = await Task.create({
-        taskCode: 'TSK-HORIZ-001',
+        taskCode: 'TSK-0040-HOR',
         title: 'User 1 task',
         description: 'Owned by user 1',
         priority: 'HIGH',
         status: 'REPORTED',
         reportedBy: new Types.ObjectId(userUserId),
         machineryId: new Types.ObjectId(),
+        slaDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
       task1Id = task1._id.toString();
 
@@ -414,13 +419,14 @@ describe('Role-Based Access Control Integration', () => {
       });
 
       const task2 = await Task.create({
-        taskCode: 'TSK-HORIZ-002',
+        taskCode: 'TSK-0041-HOR',
         title: 'User 2 task',
         description: 'Owned by user 2',
         priority: 'MEDIUM',
         status: 'REPORTED',
         reportedBy: otherUser._id,
         machineryId: new Types.ObjectId(),
+        slaDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
       task2Id = task2._id.toString();
 
@@ -460,7 +466,7 @@ describe('Role-Based Access Control Integration', () => {
       });
 
       const task1 = await Task.create({
-        taskCode: 'TSK-TECH-001',
+        taskCode: 'TSK-0060-TEC',
         title: 'Tech 1 task',
         description: 'Assigned to tech 1',
         priority: 'HIGH',
@@ -468,6 +474,7 @@ describe('Role-Based Access Control Integration', () => {
         reportedBy: new Types.ObjectId(managerUserId),
         assignedTo: tech1._id,
         machineryId: new Types.ObjectId(),
+        slaDeadline: new Date(Date.now() + 24 * 60 * 60 * 1000),
       });
 
       // Tech1 tries to access Task1 (assigned to them) - should succeed
@@ -490,13 +497,14 @@ describe('Role-Based Access Control Integration', () => {
 
     beforeAll(async () => {
       const task = await Task.create({
-        taskCode: 'TSK-AUTH-001',
+        taskCode: 'TSK-0070-AUT',
         title: 'Authorization test task',
         description: 'Testing role-based actions',
         priority: 'CRITICAL',
         status: 'REPORTED',
         reportedBy: new Types.ObjectId(userUserId),
         machineryId: new Types.ObjectId(),
+        slaDeadline: new Date(Date.now() + 4 * 60 * 60 * 1000),
       });
       testTaskId = task._id.toString();
     });
@@ -584,3 +592,4 @@ describe('Role-Based Access Control Integration', () => {
     });
   });
 });
+
