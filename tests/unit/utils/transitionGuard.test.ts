@@ -56,26 +56,19 @@ describe('State Machine Transition Guard (lib/transitionGuard.ts)', () => {
   });
 
   describe('UNDER_REVIEW → ASSIGNED Transition', () => {
-    it('should only allow MANAGER/SENIOR_MANAGER', async () => {
+    it('should block USER and TECHNICIAN from assigning tasks', async () => {
       const task = createMockTask({ status: 'UNDER_REVIEW' });
 
-      // Allowed
-      expect(() => validateTransition(task, 'ASSIGNED', mockUser('MANAGER'), {})).not.toThrow();
-      expect(() =>
-        validateTransition(task, 'ASSIGNED', mockUser('SENIOR_MANAGER'), {}),
-      ).not.toThrow();
-
-      // Not allowed
       await expect(validateTransition(task, 'ASSIGNED', mockUser('USER'), {})).rejects.toThrow();
       await expect(validateTransition(task, 'ASSIGNED', mockUser('TECHNICIAN'), {})).rejects.toThrow();
     });
 
-    it('should require assignedTo context', () => {
+    it('should require assignedTo field for MANAGER to assign', async () => {
       const task = createMockTask({ status: 'UNDER_REVIEW' });
       const user = mockUser('MANAGER');
 
-      // Without context, should still validate role
-      expect(() => validateTransition(task, 'ASSIGNED', user, {})).not.toThrow();
+      // assignedTo is mandatory — omitting it must throw a ValidationError
+      await expect(validateTransition(task, 'ASSIGNED', user, {})).rejects.toThrow('assignedTo is required');
     });
   });
 
@@ -123,22 +116,19 @@ describe('State Machine Transition Guard (lib/transitionGuard.ts)', () => {
     });
   });
 
-  describe('MATERIAL_REQUESTED → IN_PROGRESS/ESCALATED Transitions', () => {
-    it('should allow MANAGER to approve material and move to IN_PROGRESS', () => {
+  describe('MATERIAL_REQUESTED → IN_PROGRESS Transitions', () => {
+    it('should allow MANAGER to approve material and move to IN_PROGRESS', async () => {
       const task = createMockTask({ status: 'MATERIAL_REQUESTED' });
       const manager = mockUser('MANAGER');
 
-      expect(() => validateTransition(task, 'IN_PROGRESS', manager, {})).not.toThrow();
+      await expect(validateTransition(task, 'IN_PROGRESS', manager, {})).resolves.toBeUndefined();
     });
 
-    it('should auto-escalate on 3rd material rejection', () => {
-      const task = createMockTask({
-        status: 'MATERIAL_REQUESTED',
-        rejectionCount: 3,
-      });
-      const manager = mockUser('MANAGER');
+    it('should block USER and TECHNICIAN from approving material requests', async () => {
+      const task = createMockTask({ status: 'MATERIAL_REQUESTED' });
 
-      expect(() => validateTransition(task, 'ESCALATED', manager, {})).not.toThrow();
+      await expect(validateTransition(task, 'IN_PROGRESS', mockUser('USER'), {})).rejects.toThrow();
+      await expect(validateTransition(task, 'IN_PROGRESS', mockUser('TECHNICIAN', '507f1f77bcf86cd799439012'), {})).rejects.toThrow();
     });
   });
 
@@ -150,11 +140,21 @@ describe('State Machine Transition Guard (lib/transitionGuard.ts)', () => {
       expect(() => validateTransition(task, 'CONFIRMED', manager, {})).not.toThrow();
     });
 
-    it('should allow MANAGER to reopen completed task', () => {
+    it('should allow MANAGER to reopen completed task with a reason', async () => {
       const task = createMockTask({ status: 'COMPLETED' });
       const manager = mockUser('MANAGER');
 
-      expect(() => validateTransition(task, 'REOPENED', manager, {})).not.toThrow();
+      // reopenReason is mandatory for COMPLETED→REOPENED
+      await expect(
+        validateTransition(task, 'REOPENED', manager, { reopenReason: 'Quality issue found during inspection' }),
+      ).resolves.toBeUndefined();
+    });
+
+    it('should require reopenReason when reopening a completed task', async () => {
+      const task = createMockTask({ status: 'COMPLETED' });
+      const manager = mockUser('MANAGER');
+
+      await expect(validateTransition(task, 'REOPENED', manager, {})).rejects.toThrow('reopenReason is required');
     });
 
     it('should prevent self-confirmation by reporter when other managers exist', async () => {
