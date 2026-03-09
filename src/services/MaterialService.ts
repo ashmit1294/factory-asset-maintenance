@@ -219,7 +219,9 @@ export async function rejectMaterialRequest(
     $inc: { rejectionCount: 1 },
   });
 
-  const nextTaskStatus = shouldEscalate ? 'ESCALATED' : 'MATERIAL_REQUESTED';
+  // Return task to IN_PROGRESS so technician can re-request materials or proceed without them.
+  // Only escalate if the rejection threshold has been reached.
+  const nextTaskStatus = shouldEscalate ? 'ESCALATED' : 'IN_PROGRESS';
   const eventAction    = shouldEscalate ? 'ESCALATED' : 'MATERIAL_REJECTED';
 
   const taskUpdate: Record<string, unknown> = {
