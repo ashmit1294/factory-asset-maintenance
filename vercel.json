@@ -3,44 +3,12 @@
   "devCommand": "npm run dev",
   "installCommand": "npm ci",
   "framework": "nextjs",
-  "env": [
-    {
-      "key": "MONGODB_URI",
-      "description": "MongoDB connection string (use MongoDB Atlas for production)"
-    },
-    {
-      "key": "JWT_SECRET",
-      "description": "Secret key for JWT signing (generate a strong random string)"
-    },
-    {
-      "key": "JWT_EXPIRES_IN",
-      "description": "JWT token expiry duration (e.g. 8h, 24h, 7d)",
-      "value": "8h"
-    },
-    {
-      "key": "NEXT_PUBLIC_APP_URL",
-      "description": "Public app URL (e.g., https://your-app.vercel.app)"
-    },
-    {
-      "key": "NODE_ENV",
-      "description": "Set to production",
-      "value": "production"
-    },
-    {
-      "key": "BCRYPT_ROUNDS",
-      "description": "Bcrypt hashing rounds",
-      "value": "12"
-    },
-    {
-      "key": "ESCALATION_REJECTION_THRESHOLD",
-      "description": "Rejection threshold for task escalation",
-      "value": "3"
-    },
-    {
-      "key": "ESCALATION_AUTO_CANCEL_DAYS",
-      "description": "Days before auto-cancelling escalated tasks",
-      "value": "7"
-    }
-  ],
+  "env": {
+    "NODE_ENV": "production",
+    "JWT_EXPIRES_IN": "8h",
+    "BCRYPT_ROUNDS": "12",
+    "ESCALATION_REJECTION_THRESHOLD": "3",
+    "ESCALATION_AUTO_CANCEL_DAYS": "7"
+  },
   "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':(exclude).env*' ':(exclude)DEPLOYMENT.md'"
 }
