@@ -93,17 +93,17 @@ export default function MachineryPage() {
   const decommissionCount = machines.filter((m) => m.status === 'DECOMMISSIONED').length;
 
   return (
-    <div className="p-6 space-y-5 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-5 max-w-6xl mx-auto">
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Machinery</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             All machines registered in the system
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center flex-wrap gap-2">
           <span className="text-xs bg-green-50 text-green-700 border border-green-200
                            px-2.5 py-1 rounded-full font-medium">
             {activeCount} Active
@@ -119,7 +119,7 @@ export default function MachineryPage() {
 
       {/* ── Filters ─────────────────────────────────────────────────────── */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 flex gap-3 flex-wrap">
-        <div className="flex-1 min-w-52 relative">
+        <div className="flex-1 min-w-0 relative">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
             fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}

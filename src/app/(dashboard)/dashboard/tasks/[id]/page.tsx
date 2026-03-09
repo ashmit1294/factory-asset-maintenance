@@ -478,7 +478,7 @@ export default function TaskDetailPage({
   const isAssignedToMe = task.assignedTo?._id === user?._id;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-5">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-5">
 
       {/* ── Success toast ────────────────────────────────────────────────── */}
       {successMsg && (
@@ -504,7 +504,7 @@ export default function TaskDetailPage({
 
       {/* ── Header card ──────────────────────────────────────────────────── */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
               <span className="font-mono text-xs text-gray-400 bg-gray-100
@@ -525,7 +525,7 @@ export default function TaskDetailPage({
 
           {/* Actions */}
           {!isTerminal && actions.length > 0 && (
-            <div className="flex flex-wrap gap-2 flex-shrink-0">
+            <div className="flex flex-wrap gap-2">
               {actions.map((a) => (
                 <button
                   key={a.label}
@@ -542,7 +542,7 @@ export default function TaskDetailPage({
 
           {isTerminal && (
             <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1.5
-                             rounded-lg font-medium flex-shrink-0">
+                             rounded-lg font-medium self-start sm:self-auto">
               Terminal state
             </span>
           )}

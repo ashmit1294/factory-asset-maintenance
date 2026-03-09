@@ -45,17 +45,17 @@ export default function InventoryPage() {
   const lowStockCount = items.filter((i) => i.quantity <= i.reorderLevel).length;
 
   return (
-    <div className="p-6 space-y-5 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-5 max-w-6xl mx-auto">
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Inventory</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             Manage spare parts and materials
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center flex-wrap gap-2">
           <span className="text-xs bg-blue-50 text-blue-700 border border-blue-200
                            px-2.5 py-1 rounded-full font-medium">
             {items.length} Items

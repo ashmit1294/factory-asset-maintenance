@@ -132,7 +132,7 @@ export default function TasksPage() {
   };
 
   return (
-    <div className="p-6 space-y-4 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-4 max-w-7xl mx-auto">
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
@@ -145,7 +145,7 @@ export default function TasksPage() {
         {(user?.role === 'USER' || canManage) && (
           <Link
             href="/dashboard/tasks/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600
                        hover:bg-blue-700 text-white text-sm font-medium rounded-lg
                        transition-colors shadow-sm"
           >
@@ -153,7 +153,7 @@ export default function TasksPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M12 4v16m8-8H4" />
             </svg>
-            Report Issue
+            <span className="hidden sm:inline">Report Issue</span>
           </Link>
         )}
       </div>
@@ -238,7 +238,7 @@ export default function TasksPage() {
       </div>
 
       {/* ── Table ───────────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden overflow-x-auto">
         {error ? (
           <div className="text-center py-10 text-sm text-red-600">{error}</div>
         ) : loading ? (
@@ -270,7 +270,7 @@ export default function TasksPage() {
             )}
           </div>
         ) : (
-          <>
+          <div className="min-w-[640px]">
             {/* Table header */}
             <div className="grid grid-cols-12 gap-2 px-5 py-2.5 bg-gray-50
                             border-b border-gray-200 text-xs font-semibold
@@ -364,7 +364,7 @@ export default function TasksPage() {
                 </Link>
               ))}
             </div>
-          </>
+          </div>
         )}
       </div>
 

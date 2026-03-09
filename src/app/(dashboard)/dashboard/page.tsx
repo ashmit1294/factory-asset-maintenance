@@ -80,7 +80,7 @@ export default function DashboardPage() {
   const greeting = getGreeting();
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
@@ -95,7 +95,7 @@ export default function DashboardPage() {
         {(user?.role === 'USER' || canManage) && (
           <Link
             href="/dashboard/tasks/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-blue-600
                        hover:bg-blue-700 text-white text-sm font-medium rounded-lg
                        transition-colors shadow-sm"
           >
@@ -103,7 +103,7 @@ export default function DashboardPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M12 4v16m8-8H4" />
             </svg>
-            Report Issue
+            <span className="hidden sm:inline">Report Issue</span>
           </Link>
         )}
       </div>
@@ -128,7 +128,7 @@ export default function DashboardPage() {
       )}
 
       {/* ── Stat cards ──────────────────────────────────────────────────── */}
-      <div className={`grid gap-4 ${statCards.length >= 6 ? 'grid-cols-3 xl:grid-cols-6' : 'grid-cols-3'}`}>
+      <div className={`grid gap-4 ${statCards.length >= 6 ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-6' : 'grid-cols-2 sm:grid-cols-3'}`}>
         {statCards.map((s) => (
           <Link
             key={s.label}
