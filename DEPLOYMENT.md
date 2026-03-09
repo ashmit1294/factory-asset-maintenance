@@ -46,7 +46,8 @@ In Vercel Dashboard → Project Settings → Environment Variables, add:
 ```
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/factory-asset-maintenance
 JWT_SECRET=generate-a-random-64-character-string-here
-next NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
+JWT_EXPIRES_IN=8h
+NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
 NODE_ENV=production
 BCRYPT_ROUNDS=12
 ESCALATION_REJECTION_THRESHOLD=3
@@ -80,9 +81,11 @@ MONGODB_URI="your-production-uri" NODE_ENV=production npm run seed
 |----------|-----------|------------------|
 | `MONGODB_URI` | `mongodb://localhost:27017/...` | `mongodb+srv://...` |
 | `JWT_SECRET` | `your-super-secret-key...` | Generate strong secret |
+| `JWT_EXPIRES_IN` | `8h` | `8h` |
 | `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | `https://your-app.vercel.app` |
 | `NODE_ENV` | `development` | `production` |
 | `BCRYPT_ROUNDS` | `12` | `12` |
+| `ESCALATION_REJECTION_THRESHOLD` | `3` | `3` |
 
 ## Troubleshooting
 
