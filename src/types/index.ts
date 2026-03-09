@@ -88,3 +88,9 @@ export const ESCALATION_EXEMPT_STATES: TaskStatus[] = [
   'PAUSED',
   'ESCALATED',
 ];
+
+export interface IMaterialItem {
+  name: string;
+  quantity: number;
+  unit: Unit;
+}
