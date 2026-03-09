@@ -195,7 +195,6 @@ const TaskSchema = new Schema<ITask>(
     toJSON: {
       virtuals: true,
       transform: (_doc, ret: any) => {
-        delete ret.__v;
         return ret;
       },
     },
