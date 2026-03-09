@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI!;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/factory-asset-maintenance-test';
 
-if (!MONGODB_URI) {
-  throw new Error(
-    'Please define the MONGODB_URI environment variable in .env.local'
+if (!process.env.MONGODB_URI && process.env.NODE_ENV !== 'test') {
+  console.warn(
+    'Warning: MONGODB_URI not defined. Using default connection string.'
   );
 }
 
@@ -25,6 +25,11 @@ const cached: MongooseCache = global.mongooseCache ?? {
 global.mongooseCache = cached;
 
 export async function connectDB(): Promise<typeof mongoose> {
+  // If already in test environment, return existing connection
+  if (process.env.NODE_ENV === 'test' && mongoose.connection.readyState === 1) {
+    return mongoose;
+  }
+
   if (cached.conn) {
     return cached.conn;
   }

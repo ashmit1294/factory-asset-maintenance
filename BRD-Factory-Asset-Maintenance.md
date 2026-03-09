@@ -463,10 +463,19 @@ When Machinery.status changes to DECOMMISSIONED:
 - API response time (p95): < 200ms for single document fetch
 - Full-text search: < 1s for up to 100k tasks
 
-**NFR-PERF-002: Database Indexes**
-Required indexes:
-```
-User: { email: 1 } unique, { role: 1, isActive: 1 }
+-----------------------------------------------------------------------------
+| Method | Endpoint                         | Description                   |
+| ------ | -------------------------------- | ----------------------------- |
+| POST   | /api/auth/login                  | Login and get JWT             |
+| GET    | /api/tasks                       | Fetch tasks (role-filtered)   |
+| POST   | /api/tasks                       | Create a new task             |
+| PATCH  | /api/tasks/[id]/status           | Update task status            |
+| POST   | /api/tasks/[id]/material-request | Technician requests materials |
+| PATCH  | /api/tasks/[id]/approve-material | Manager approves material     |
+| GET    | /api/tasks/[id]                  | Fetch single task detail      |
+-----------------------------------------------------------------------------
+
+
 Task: { taskCode: 1 } unique, { status: 1 }, { reportedBy: 1 }, { assignedTo: 1 }, { priority: 1, slaDeadline: 1 }, { title: 'text', description: 'text' }
 Machinery: { serialNumber: 1 } unique, { status: 1 }
 MaterialRequest: { taskId: 1 }, { requestedBy: 1 }, { status: 1 }
@@ -739,24 +748,25 @@ IN_PROGRESS (task active on Machine-X)
 ### 9.1 Role-Based Access Control (RBAC)
 
 **Authorization Matrix:**
-
-| Action | USER | TECHNICIAN | MANAGER | SENIOR_MANAGER |
-|--------|------|------------|---------|----------------|
-| Create task | ✅ | ❌ | ✅ | ✅ |
-| View own reported tasks | ✅ | ❌ | ✅ | ✅ |
-| View assigned tasks | ❌ | ✅ | ✅ | ✅ |
-| View all tasks | ❌ | ❌ | ✅ | ✅ |
-| Assign task | ❌ | ❌ | ✅ | ✅ |
-| Pick up assigned task | ❌ | ✅ | ❌ | ❌ |
-| Request materials | ❌ | ✅ | ❌ | ❌ |
-| Approve/Reject materials | ❌ | ❌ | ✅ | ✅ |
-| Mark task complete | ❌ | ✅ | ❌ | ❌ |
-| Confirm task | ❌ | ❌ | ✅* | ✅* |
-| Reject task | ❌ | ❌ | ✅ | ✅ |
-| Cancel task | ❌ | ❌ | ✅ | ✅ |
-| Resolve escalation | ❌ | ❌ | ✅** | ✅** |
-| View inventory | ❌ | ❌ | ✅ | ✅ |
-| View machinery history | ❌ | ❌ | ✅ | ✅ |
+--------------------------------------------------------------------------
+| Action                  | USER | TECHNICIAN | MANAGER | SENIOR_MANAGER |
+|-------------------------|------|------------|---------|----------------|
+| Create task             | ✅   | ❌        | ✅      | ✅            |
+| View own reported tasks | ✅   | ❌        | ✅      | ✅            |
+| View assigned tasks     | ❌   | ✅        | ✅      | ✅            |
+| View all tasks          | ❌   | ❌        | ✅      | ✅            |
+| Assign task             | ❌   | ❌        | ✅      | ✅            |
+| Pick up assigned task   | ❌   | ✅        | ❌      | ❌            |
+| Request materials       | ❌   | ✅        | ❌      | ❌            |
+| Approve/Reject materials| ❌   | ❌        | ✅      | ✅            |
+| Mark task complete      | ❌   | ✅        | ❌      | ❌            |
+| Confirm task            | ❌   | ❌        | ✅*     | ✅*           |
+| Reject task             | ❌   | ❌        | ✅      | ✅            |
+| Cancel task             | ❌   | ❌        | ✅      | ✅            |
+| Resolve escalation      | ❌   | ❌        | ✅**    | ✅**          |
+| View inventory          | ❌   | ❌        | ✅      | ✅            |
+| View machinery history  | ❌   | ❌        | ✅      | ✅            |
+--------------------------------------------------------------------------
 
 *Cannot confirm a task they reported (if other managers exist)  
 **Cannot resolve if they last rejected the material request
