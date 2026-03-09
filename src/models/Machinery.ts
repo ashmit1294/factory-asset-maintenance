@@ -14,6 +14,8 @@ export interface IMachinery extends Document {
   location: string;
   type: string;
   status: MachineryStatus;
+  installationDate?: Date;
+  lastMaintenanceDate?: Date;
   maintenanceHistory: IMaintenanceHistoryEntry[];
   createdAt: Date;
   updatedAt: Date;
@@ -83,6 +85,14 @@ const MachinerySchema = new Schema<IMachinery>(
         message: 'Status must be ACTIVE or DECOMMISSIONED',
       },
       default: 'ACTIVE',
+    },
+    installationDate: {
+      type: Date,
+      default: null,
+    },
+    lastMaintenanceDate: {
+      type: Date,
+      default: null,
     },
     maintenanceHistory: {
       type: [MaintenanceHistorySchema],
