@@ -3,7 +3,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm ci",
   "framework": "nextjs",
-  "nodejs": "22",
   "env": [
     {
       "key": "MONGODB_URI",
