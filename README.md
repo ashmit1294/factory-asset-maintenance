@@ -294,6 +294,110 @@ factory-asset-maintenance/
 
 ---
 
+### Workflow Scenario Diagrams (from `Overview.drawio`)
+
+GitHub cannot render multi-page `.drawio` files inline in Markdown, so the scenarios are mirrored below using Mermaid for direct preview in the repository README.
+
+Source file: [`Overview.drawio`](Overview.drawio)
+
+#### 01 Happy Path
+
+Full lifecycle from report to confirmed resolution, with optional material sub-flow.
+
+```mermaid
+flowchart LR
+  A[REPORTED] -->|Manager| B[UNDER_REVIEW]
+  B -->|Manager assigns| C[ASSIGNED]
+  C -->|Technician starts| D[IN_PROGRESS]
+  D -->|Technician requests parts| E[MATERIAL_REQUESTED]
+  E -->|Manager approves| F[IN_PROGRESS]
+  D -.->|no parts needed| F
+  F -->|Technician completes| G[COMPLETED]
+  G -->|Manager confirms| H([CONFIRMED ✔])
+  H -.->|auto| I[/Maintenance History/]
+```
+
+#### 02 Task Rejected
+
+Manager rejects during review — terminal state.
+
+```mermaid
+flowchart LR
+  A[REPORTED] -->|Manager| B[UNDER_REVIEW]
+  B -->|Manager rejects| C([REJECTED ✘])
+  N[/Requires: rejectionReason/] -.-> C
+```
+
+#### 03 Cancellation Paths
+
+Manager can cancel from any of the 7 non-terminal active states.
+
+```mermaid
+flowchart TB
+  A[REPORTED] -->|Manager| Z([CANCELLED ✘])
+  B[UNDER_REVIEW] -->|Manager| Z
+  C[ASSIGNED] -->|Manager| Z
+  D[IN_PROGRESS] -->|Manager| Z
+  E[MATERIAL_REQUESTED] -->|Manager| Z
+  F[ESCALATED] -->|Manager| Z
+  G[PAUSED] -->|Manager| Z
+  N[/Requires: cancellationReason/] -.-> Z
+```
+
+#### 04 Pause and Resume
+
+Manager temporarily halts work; SLA clock stops while paused.
+
+```mermaid
+flowchart LR
+  A[IN_PROGRESS] -->|Manager pauses| B[PAUSED]
+  N[/Requires: pauseReason/] -.-> B
+  B -->|Manager resumes| C[IN_PROGRESS]
+  C -->|Technician| D[COMPLETED]
+  D -->|Manager| E([CONFIRMED ✔])
+```
+
+#### 05 Escalation Resolution
+
+Material request rejected 3+ times triggers auto-escalation; a different manager or senior manager resolves.
+
+```mermaid
+flowchart LR
+  A[IN_PROGRESS] -->|Technician| B[MATERIAL_REQUESTED]
+  B -->|Manager rejects — rejectionCount++| B
+  B -->|"System auto (rejectionCount ≥ 3)"| C[ESCALATED]
+  C -->|"Manager / Sr. Manager resolves"| D[IN_PROGRESS]
+  G[/Guard: resolver ≠ last rejecter/] -.-> C
+```
+
+#### 06 Reopen Loop
+
+Manager reopens a completed task — same tech resumes or manager reassigns.
+
+```mermaid
+flowchart LR
+  A[COMPLETED] -->|Manager reopens| B[REOPENED]
+  N[/Requires: reopenReason/] -.-> B
+  B -->|Technician resumes| C[IN_PROGRESS]
+  B -->|Manager reassigns| C2[ASSIGNED]
+  C2 -->|Technician starts| C
+  C -->|Technician| D[COMPLETED]
+  D -->|Manager| E([CONFIRMED ✔])
+```
+
+#### 07 Escalation Auto-Cancel
+
+Daily cron job cancels escalations unresolved for 7+ days; performedBy = SYSTEM.
+
+```mermaid
+flowchart LR
+  A[ESCALATED] -.->|daily cron check| B{escalatedAt\n< now − 7 days?}
+  B -->|Yes| C([CANCELLED ✘])
+  N[/"cancellationReason: Auto-cancelled —\nescalation unresolved after 7 days\nperformedBy = SYSTEM"/] -.-> C
+```
+
+---
+
 ## 12. Tech Stack
 
 | Layer | Technology |
